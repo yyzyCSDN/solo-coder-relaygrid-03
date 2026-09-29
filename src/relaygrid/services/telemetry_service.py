@@ -10,7 +10,11 @@ class TelemetryService:
     def ingest(self,sample: TelemetrySample): self._by_point[sample.point_id].append(sample)
     def latest(self,point_id: str):
         rows=self._by_point.get(point_id,[])
-        return rows[-1] if rows else None
+        if not rows: return None
+        # Order within a point is by sequence (timestamp as tiebreak), not by
+        # arrival time: an older backfilled sample arriving late must never
+        # become the point's latest value.
+        return max(rows,key=lambda s:(s.sequence,s.timestamp_s))
     def snapshot(self,now_s: float):
         out={}
         for point_id in sorted(self._by_point):

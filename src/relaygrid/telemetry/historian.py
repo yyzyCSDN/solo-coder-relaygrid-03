@@ -31,11 +31,16 @@ class Historian:
 
 
 def merge_live_and_recovery(live:list[TelemetrySample],recovered:list[TelemetrySample]):
-    by_seq: dict[int,TelemetrySample]={}
+    # Key on point AND sequence: equal sequence numbers at different points
+    # are independent samples and must never overwrite one another.
+    by_key: dict[tuple[str,int],TelemetrySample]={}
     for sample in recovered+live:
-        cur=by_seq.get(sample.sequence)
-        if cur is None or sample.timestamp_s>cur.timestamp_s: by_seq[sample.sequence]=sample
-    return [by_seq[k] for k in sorted(by_seq)]
+        key=(sample.point_id,sample.sequence)
+        cur=by_key.get(key)
+        # Newer timestamp wins; on a tie the live copy (processed later) wins,
+        # so replaying the same backfill never clobbers the live value.
+        if cur is None or sample.timestamp_s>=cur.timestamp_s: by_key[key]=sample
+    return sorted(by_key.values(),key=lambda s:(s.sequence,s.point_id))
 
 
 def detect_gaps(samples:list[TelemetrySample]):
