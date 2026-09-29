@@ -9,8 +9,7 @@ class TelemetryService:
         self._by_point: defaultdict[str,list[TelemetrySample]]=defaultdict(list)
     def ingest(self,sample: TelemetrySample): self._by_point[sample.point_id].append(sample)
     def latest(self,point_id: str):
-        rows=self._by_point.get(point_id,[])
-        return rows[-1] if rows else None
+        return newest_valid(self._by_point.get(point_id,[]))
     def snapshot(self,now_s: float):
         out={}
         for point_id in sorted(self._by_point):

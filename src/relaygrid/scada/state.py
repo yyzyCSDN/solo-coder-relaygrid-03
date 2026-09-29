@@ -6,7 +6,7 @@ class StateStore:
     discrete: dict[str,str]=field(default_factory=dict)
     versions: dict[str,int]=field(default_factory=dict)
     def apply(self, point_id: str, value, version: int):
-        if version < self.versions.get(point_id,-1): return False
+        if version <= self.versions.get(point_id,-1): return False
         self.versions[point_id]=version
         if isinstance(value,(int,float)): self.analog[point_id]=float(value)
         else: self.discrete[point_id]=str(value)

@@ -31,11 +31,12 @@ class Historian:
 
 
 def merge_live_and_recovery(live:list[TelemetrySample],recovered:list[TelemetrySample]):
-    by_seq: dict[int,TelemetrySample]={}
+    by_key: dict[tuple[str,int],TelemetrySample]={}
     for sample in recovered+live:
-        cur=by_seq.get(sample.sequence)
-        if cur is None or sample.timestamp_s>cur.timestamp_s: by_seq[sample.sequence]=sample
-    return [by_seq[k] for k in sorted(by_seq)]
+        key=(sample.point_id,sample.sequence)
+        cur=by_key.get(key)
+        if cur is None or sample.timestamp_s>cur.timestamp_s: by_key[key]=sample
+    return [by_key[k] for k in sorted(by_key)]
 
 
 def detect_gaps(samples:list[TelemetrySample]):
